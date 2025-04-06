@@ -42,7 +42,7 @@ class RegistrationActivity : AppCompatActivity() {
         val loginbtn = findViewById<Button>(R.id.btnLogin)
 
         loginbtn.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java) //remember to change it to loginActivity when i am done creating the reg
+            val intent = Intent(this, LoginActivity::class.java)
             startActivity((intent))
         }
 
@@ -83,7 +83,7 @@ class RegistrationActivity : AppCompatActivity() {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    startActivity(Intent(this, MainActivity::class.java))//remember to change it to loginActivity when i am done creating the reg
+                    startActivity(Intent(this, LoginActivity::class.java))
                     finish()
                 } else {
                     Toast.makeText(this, "Registration failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
