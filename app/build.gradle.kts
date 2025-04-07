@@ -7,6 +7,7 @@ plugins {
 android {
     namespace = "com.fake.socialmedia"
     compileSdk = 35
+    viewBinding.enable = true
 
     defaultConfig {
         applicationId = "com.fake.socialmedia"
@@ -34,6 +35,8 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+
 }
 
 dependencies {

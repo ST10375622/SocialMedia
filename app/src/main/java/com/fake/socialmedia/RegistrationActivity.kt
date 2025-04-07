@@ -14,77 +14,80 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.Calendar
 import java.util.Locale
+import com.fake.socialmedia.databinding.ActivityRegistrationBinding
 
 class RegistrationActivity : AppCompatActivity() {
 
-    private lateinit var emailEditText: EditText
-    private lateinit var dobEditText: EditText
-    private lateinit var passwordEditText: EditText
-    private lateinit var confirmPasswordEditText: EditText
-    private lateinit var loginButton: Button
-    private lateinit var registerButton: Button
+    private lateinit var binding: ActivityRegistrationBinding
     private lateinit var auth: FirebaseAuth
     private val db = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_registration)
 
+        binding = ActivityRegistrationBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        emailEditText = findViewById(R.id.editTextTextEmailAddress)
-        dobEditText = findViewById(R.id.editTextDate)
-        passwordEditText = findViewById(R.id.editTextTextPassword)
-        confirmPasswordEditText = findViewById(R.id.editTextTextConfirmPassword)
-        loginButton = findViewById(R.id.btnLogin)
-        registerButton = findViewById(R.id.btnRegistration)
         auth = FirebaseAuth.getInstance()
-        val loginbtn = findViewById<Button>(R.id.btnLogin)
 
-        loginbtn.setOnClickListener {
+        // Login Button
+        binding.btnLogin.setOnClickListener {
             val intent = Intent(this, LoginActivity::class.java)
-            startActivity((intent))
+            startActivity(intent)
         }
 
-        dobEditText.setOnClickListener{
+        // Date Picker for DOB
+        binding.editTextDate.setOnClickListener {
             showDatePickerDialog()
         }
 
-        registerButton.setOnClickListener {
-            val email = emailEditText.text.toString().trim()
-            val password = passwordEditText.text.toString().trim()
-            val confirmPassword = confirmPasswordEditText.text.toString().trim()
-            val dob = dobEditText.text.toString().trim()
+        // Registration Button
+        binding.btnRegistration.setOnClickListener {
+            val email = binding.editTextTextEmailAddress.text.toString().trim()
+            val password = binding.editTextTextPassword.text.toString().trim()
+            val confirmPassword = binding.editTextTextConfirmPassword.text.toString().trim()
+            val dob = binding.editTextDate.text.toString().trim()
 
-            if (email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()) {
+            if (email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty() && dob.isNotEmpty()) {
                 if (password == confirmPassword) {
-                    registerUser(email, password)
-                    Toast.makeText(
-                        this,
-                        "com.fake.a1ice_task.User Created successfully",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
+                    registerUser(email, password, dob)
                 } else {
                     Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
                 }
-
             } else {
                 Toast.makeText(
                     this,
-                    "Please enter email, password, and confirm password",
+                    "Please fill in all fields",
                     Toast.LENGTH_SHORT
                 ).show()
             }
         }
     }
 
-    private fun registerUser(email: String, password: String) {
+    private fun registerUser(email: String, password: String, dob: String) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    startActivity(Intent(this, LoginActivity::class.java))
-                    finish()
+                    val userId = auth.currentUser?.uid
+                    val userMap = hashMapOf(
+                        "email" to email,
+                        "dob" to dob,
+                        "createdAt" to System.currentTimeMillis()
+                    )
+
+                    if (userId != null) {
+                        db.collection("Ulm@gmail.comsers").document(userId)
+                            .set(userMap)
+                            .addOnSuccessListener {
+                                Toast.makeText(this, "User registered and data saved", Toast.LENGTH_SHORT).show()
+                                startActivity(Intent(this, LoginActivity::class.java))
+                                finish()
+                            }
+                            .addOnFailureListener { e ->
+                                Toast.makeText(this, "Data save failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
+                    }
                 } else {
                     Toast.makeText(this, "Registration failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
@@ -99,7 +102,7 @@ class RegistrationActivity : AppCompatActivity() {
 
         val datePickerDialog = DatePickerDialog(this, { _, selectedYear, selectedMonth, selectedDay ->
             val selectedDate = String.format(Locale.getDefault(), "%02d/%02d/%04d", selectedMonth + 1, selectedDay, selectedYear)
-            dobEditText.setText(selectedDate)
+            binding.editTextDate.setText(selectedDate)
         }, year, month, day)
 
         datePickerDialog.show()
