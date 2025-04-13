@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".PostActivity"
+    android:orientation="vertical"
+    android:gravity="center">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/postImage"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:scaleType="centerCrop"
+                 android:src="@mipmap/profile_place_holder_foreground"/>
+
+            <EditText
+                android:id="@+id/caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="12dp"
+                android:ems="10"
+                android:hint="Write a caption..." />
+
+            <Button
+                android:id="@+id/btnSelectImage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Select Image from Gallery"
+                android:backgroundTint="@color/Pink"
+                android:textColor="@color/black"
+                tools:layout_editor_absoluteX="161dp"
+                tools:layout_editor_absoluteY="289dp" />
+
+            <Button
+                android:id="@+id/btnCaptureImage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Capture Image"
+                android:backgroundTint="@color/Pink"
+                android:textColor="@color/black"
+                tools:layout_editor_absoluteX="161dp"
+                tools:layout_editor_absoluteY="289dp" />
+
+            <Button
+                android:id="@+id/btnUploadPost"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Upload Post"
+                android:backgroundTint="@color/Pink"
+                android:textColor="@color/black"
+                tools:layout_editor_absoluteX="161dp"
+                tools:layout_editor_absoluteY="289dp" />
+        </LinearLayout>
+    </ScrollView>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewPosts"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="8dp" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_gravity="bottom"
+        android:scrollIndicators="left"
+        app:menu="@menu/navigation_menu"/>
+
+
+</LinearLayout>
