@@ -12,6 +12,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -21,16 +22,14 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.io.ByteArrayOutputStream
+import java.io.InputStream
 
 class PostActivity : AppCompatActivity() {
-
-    private val REQUEST_IMAGE_CAPTURE = 1
-    private val REQUEST_IMAGE_PICK = 2
-    private val REQUEST_CAMERA_PERMISSION = 101
 
     private lateinit var postImage: ImageView
     private lateinit var caption: EditText
     private lateinit var bottomNav: BottomNavigationView
+    private lateinit var btnImage: Button
     private var selectedBitmap: Bitmap? = null
 
     private lateinit var firestore: FirebaseFirestore
@@ -41,6 +40,31 @@ class PostActivity : AppCompatActivity() {
     private val postsList = mutableListOf<Post>()
 
     private var username: String = "UnknownUser"
+
+    private val imagePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data: Intent? = result.data
+
+            if (data?.data != null){
+                val uri = data.data!!
+                val inputStream: InputStream? = contentResolver.openInputStream(uri)
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+                selectedBitmap = bitmap
+                postImage.setImageBitmap(bitmap)
+            }else {
+                val bitmap = data?.extras?.get("data") as? Bitmap
+                bitmap?.let {
+                    selectedBitmap = it
+                    postImage.setImageBitmap(it)
+                }
+            }
+        }
+    }
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +78,8 @@ class PostActivity : AppCompatActivity() {
         caption = findViewById(R.id.caption)
         recyclerView = findViewById(R.id.recyclerViewPosts)
         bottomNav = findViewById(R.id.bottomNav)
+        btnImage = findViewById(R.id.btnImage)
+        val btnUploadPost: Button = findViewById(R.id.btnUploadPost)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         postAdapter = PostAdapter(postsList)
@@ -83,11 +109,8 @@ class PostActivity : AppCompatActivity() {
             }
         }
 
-        findViewById<Button>(R.id.btnSelectImage).setOnClickListener { openGallery() }
-
-        findViewById<Button>(R.id.btnCaptureImage).setOnClickListener {
-            Toast.makeText(this, "Capture button clicked", Toast.LENGTH_SHORT).show()
-            checkCameraPermissionAndOpenCamera()
+        btnImage.setOnClickListener {
+            showImagePicker()
         }
 
         findViewById<Button>(R.id.btnUploadPost).setOnClickListener { uploadPost() }
@@ -95,75 +118,21 @@ class PostActivity : AppCompatActivity() {
         loadPosts()
     }
 
-    private fun checkCameraPermissionAndOpenCamera() {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.CAMERA
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(android.Manifest.permission.CAMERA),
-                REQUEST_CAMERA_PERMISSION
-            )
-        } else {
-            openCamera()
-        }
+    private fun showImagePicker()
+    {
+
+        val pickIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        val takePhotoIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+
+        val chooserIntent = Intent.createChooser(pickIntent, "Select Image")
+        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(takePhotoIntent))
+        imagePickerLauncher.launch(chooserIntent)
     }
 
-    private fun openCamera() {
-        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        if (takePictureIntent.resolveActivity(packageManager) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
-        } else {
-            Toast.makeText(this, "No camera app found", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun openGallery() {
-        val pickPhoto = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(pickPhoto, REQUEST_IMAGE_PICK)
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        if (requestCode == REQUEST_CAMERA_PERMISSION &&
-            grantResults.isNotEmpty() &&
-            grantResults[0] == PackageManager.PERMISSION_GRANTED
-        ) {
-            openCamera()
-        } else {
-            Toast.makeText(this, "Camera permission is required", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (resultCode == Activity.RESULT_OK) {
-            when (requestCode) {
-                REQUEST_IMAGE_CAPTURE -> {
-                    selectedBitmap = data?.extras?.get("data") as? Bitmap
-                    postImage.setImageBitmap(selectedBitmap)
-                }
-                REQUEST_IMAGE_PICK -> {
-                    val imageUri = data?.data
-                    val inputStream = contentResolver.openInputStream(imageUri!!)
-                    selectedBitmap = BitmapFactory.decodeStream(inputStream)
-                    postImage.setImageBitmap(selectedBitmap)
-                }
-            }
-        }
-    }
 
     private fun encodeImageToBase64(bitmap: Bitmap): String {
         val baos = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos)
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos)
         val imageBytes = baos.toByteArray()
         return Base64.encodeToString(imageBytes, Base64.DEFAULT)
     }

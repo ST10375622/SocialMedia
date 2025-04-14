@@ -35,24 +35,15 @@
                 android:hint="Write a caption..." />
 
             <Button
-                android:id="@+id/btnSelectImage"
+                android:id="@+id/btnImage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Select Image from Gallery"
+                android:text="Upload Image"
                 android:backgroundTint="@color/Pink"
                 android:textColor="@color/black"
                 tools:layout_editor_absoluteX="161dp"
                 tools:layout_editor_absoluteY="289dp" />
 
-            <Button
-                android:id="@+id/btnCaptureImage"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Capture Image"
-                android:backgroundTint="@color/Pink"
-                android:textColor="@color/black"
-                tools:layout_editor_absoluteX="161dp"
-                tools:layout_editor_absoluteY="289dp" />
 
             <Button
                 android:id="@+id/btnUploadPost"
