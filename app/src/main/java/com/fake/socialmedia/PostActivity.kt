@@ -2,7 +2,6 @@ package com.fake.socialmedia
 
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -14,10 +13,6 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -34,16 +29,10 @@ class PostActivity : AppCompatActivity() {
 
     private lateinit var firestore: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
-
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var postAdapter: PostAdapter
-    private val postsList = mutableListOf<Post>()
-
     private var username: String = "UnknownUser"
 
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
-
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val data: Intent? = result.data
@@ -70,20 +59,19 @@ class PostActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_post)
 
+
+
         firestore = FirebaseFirestore.getInstance()
         auth = FirebaseAuth.getInstance()
         username = intent.getStringExtra("username") ?: "UnknownUser"
 
         postImage = findViewById(R.id.postImage)
         caption = findViewById(R.id.caption)
-        recyclerView = findViewById(R.id.recyclerViewPosts)
         bottomNav = findViewById(R.id.bottomNav)
         btnImage = findViewById(R.id.btnImage)
-        val btnUploadPost: Button = findViewById(R.id.btnUploadPost)
 
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        postAdapter = PostAdapter(postsList)
-        recyclerView.adapter = postAdapter
+
+
 
         bottomNav.setOnItemSelectedListener {
             when (it.itemId) {
@@ -115,15 +103,18 @@ class PostActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btnUploadPost).setOnClickListener { uploadPost() }
 
-        loadPosts()
+        findViewById<Button>(R.id.btnGoToFeed).setOnClickListener {
+            val intent = Intent(this, FeedActivity::class.java)
+            intent.putExtra("username", username)
+            startActivity(intent)
+        }
+
     }
 
     private fun showImagePicker()
     {
-
         val pickIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         val takePhotoIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-
         val chooserIntent = Intent.createChooser(pickIntent, "Select Image")
         chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(takePhotoIntent))
         imagePickerLauncher.launch(chooserIntent)
@@ -138,7 +129,7 @@ class PostActivity : AppCompatActivity() {
     }
 
     private fun uploadPost() {
-        if (selectedBitmap == null || caption.text.isBlank()) {
+         if (selectedBitmap == null || caption.text.isBlank()) {
             Toast.makeText(this, "Please select an image and enter a caption.", Toast.LENGTH_SHORT).show()
             return
         }
@@ -161,26 +152,11 @@ class PostActivity : AppCompatActivity() {
                 postImage.setImageResource(R.mipmap.profile_place_holder_foreground)
                 caption.text.clear()
 
-                postsList.add(0, post)
-                postAdapter.notifyItemInserted(0)
-                recyclerView.scrollToPosition(0)
+
             }
             .addOnFailureListener { e ->
                 Toast.makeText(this, "Error uploading post: ${e.message}", Toast.LENGTH_LONG).show()
             }
     }
 
-    private fun loadPosts() {
-        postsList.clear()
-        firestore.collection("posts")
-            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
-            .get()
-            .addOnSuccessListener { documents ->
-                for (doc in documents) {
-                    val post = doc.toObject(Post::class.java)
-                    postsList.add(post)
-                }
-                postAdapter.notifyDataSetChanged()
-            }
-    }
 }

@@ -17,6 +17,7 @@ import java.util.Locale
 
 class RegistrationActivity : AppCompatActivity() {
 
+    private lateinit var usernameEditText: EditText
     private lateinit var emailEditText: EditText
     private lateinit var dobEditText: EditText
     private lateinit var passwordEditText: EditText
@@ -31,7 +32,7 @@ class RegistrationActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_registration)
 
-
+        usernameEditText = findViewById(R.id.editTextUsername)
         emailEditText = findViewById(R.id.editTextTextEmailAddress)
         dobEditText = findViewById(R.id.editTextDate)
         passwordEditText = findViewById(R.id.editTextTextPassword)
@@ -53,40 +54,53 @@ class RegistrationActivity : AppCompatActivity() {
         }
 
         registerButton.setOnClickListener {
+            val username = usernameEditText.text.toString().trim()
             val email = emailEditText.text.toString().trim()
             val password = passwordEditText.text.toString().trim()
             val confirmPassword = confirmPasswordEditText.text.toString().trim()
             val dob = dobEditText.text.toString().trim()
 
-            if (email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()) {
+            if (email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty() && username.isNotEmpty()) {
                 if (password == confirmPassword) {
-                    registerUser(email, password)
-                    Toast.makeText(
-                        this,
-                        "com.fake.a1ice_task.User Created successfully",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
+                    registerUser(email, password, username, dob)
+                    Toast.makeText(this, "Successful", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
                 }
-
             } else {
-                Toast.makeText(
-                    this,
-                    "Please enter email, password, and confirm password",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun registerUser(email: String, password: String) {
+    private fun registerUser(email: String, password: String, username: String, dob: String) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    startActivity(Intent(this, LoginActivity::class.java))
-                    finish()
+                    val userId = auth.currentUser?.uid
+
+                    val userMap = hashMapOf(
+                        "username" to username,
+                        "email" to email,
+                        "dob" to dob
+                    )
+
+
+                    if (userId != null) {
+                        db.collection("users").document(userId).set(userMap)
+                            .addOnSuccessListener {
+                                Toast.makeText(this, "Registration successful!", Toast.LENGTH_SHORT).show()
+
+
+                                val intent = Intent(this, PostActivity::class.java)
+                                intent.putExtra("username", username)
+                                startActivity(intent)
+                                finish()
+                            }
+                            .addOnFailureListener {
+                                Toast.makeText(this, "Failed to save user profile", Toast.LENGTH_SHORT).show()
+                            }
+                    }
                 } else {
                     Toast.makeText(this, "Registration failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 }

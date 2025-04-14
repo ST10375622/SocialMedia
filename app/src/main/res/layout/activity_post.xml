@@ -54,6 +54,17 @@
                 android:textColor="@color/black"
                 tools:layout_editor_absoluteX="161dp"
                 tools:layout_editor_absoluteY="289dp" />
+
+            <Button
+                android:id="@+id/btnGoToFeed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Go to Feed"
+                android:backgroundTint="@color/Pink"
+                android:textColor="@color/black"
+                tools:layout_editor_absoluteX="161dp"
+                tools:layout_editor_absoluteY="289dp"/>
+
         </LinearLayout>
     </ScrollView>
 
