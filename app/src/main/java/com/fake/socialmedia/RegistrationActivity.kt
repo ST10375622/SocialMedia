@@ -18,7 +18,9 @@ import com.fake.socialmedia.databinding.ActivityRegistrationBinding
 
 class RegistrationActivity : AppCompatActivity() {
 
+
     private lateinit var binding: ActivityRegistrationBinding
+
     private lateinit var auth: FirebaseAuth
     private val db = FirebaseFirestore.getInstance()
 
@@ -42,6 +44,7 @@ class RegistrationActivity : AppCompatActivity() {
             showDatePickerDialog()
         }
 
+
         // Registration Button
         binding.btnRegistration.setOnClickListener {
             val email = binding.editTextTextEmailAddress.text.toString().trim()
@@ -56,6 +59,7 @@ class RegistrationActivity : AppCompatActivity() {
                     Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
                 }
             } else {
+
                 Toast.makeText(
                     this,
                     "Please fill in all fields",
@@ -70,6 +74,7 @@ class RegistrationActivity : AppCompatActivity() {
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     val userId = auth.currentUser?.uid
+
                     val userMap = hashMapOf(
                         "email" to email,
                         "dob" to dob,
